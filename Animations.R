@@ -51,7 +51,7 @@ combined_data <- data.frame(year, group, source, value)
         legend.title=element_text(size=25,face="bold"), 
         legend.text=element_text(size=25)) +
   transition_states(year) + 
-  labs(fill = "Origin Pools", title = "Soil Carbon Origins\n Year: {closest_state}") +
+  labs(fill = "Origin Pools", title = paste(RCP, "Soil Carbon Origins\n Year: {closest_state}")) +
     scale_fill_manual(values = natural_colors)-> pie_plot
 
 # Creating Line Plot

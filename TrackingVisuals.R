@@ -13,6 +13,7 @@ source("EGU_Visualizations/cleanData.R")
 # Color blind friendly color palette with "natural" color scheme 
 natural_colors<- c("#332288", "#88CCEE", "#117733", "#999933","#DDCC77", "#44AA99", "#DDDDDD")
 
+# Inputs:
 file_name = "hector/inst/output/tracking_rcp85.csv"
 RCP = "RCP 8.5"
 

@@ -8,8 +8,8 @@ library(treemap)
 
 source("EGU_Visualizations/cleanData.R")
 
-
 plot_year = 2100
+file_name = "hector/inst/output/tracking_rcp85.csv"
 
 natural_colors<- c("#332288", "#88CCEE", "#117733", "#999933","#DDCC77", "#44AA99", "#DDDDDD")
 

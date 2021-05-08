@@ -7,7 +7,9 @@ library(ggplot2)
 library(gganimate)
 library(tidyverse)
 
-csv <- read.csv("hector/inst/output/tracking_rcp85.csv", header=TRUE)
+file_name = "hector/inst/output/tracking_rcp85.csv"
+
+csv <- read.csv(file_name, header=TRUE)
 csv %>% filter(pool_name =="Diff") -> diffs
 
 # Plots the difference in the pools from the value calculated by the ODE solver
