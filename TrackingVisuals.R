@@ -14,7 +14,7 @@ source("EGU_Visualizations/cleanData.R")
 natural_colors<- c("#332288", "#88CCEE", "#117733", "#999933","#DDCC77", "#44AA99", "#DDDDDD")
 
 # Inputs:
-file_name = "hector/inst/output/tracking_rcp85.csv"
+file_name = "EGU_Visualizations/tracking_rcp85.csv"
 RCP = "RCP 8.5"
 
 # Theme for plots - purely aesthetic

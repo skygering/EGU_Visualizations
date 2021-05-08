@@ -22,7 +22,7 @@ anim_height = 500
 save_path = paste("EGU_Visualizations/", type, ".gif")
 
 # File name
-file_name <- "hector/inst/output/tracking_rcp85.csv"
+file_name <- "EGU_Visualizations/tracking_rcp85.csv"
 
 # cleans CSV and pulls out data for particular pool and years greater than 'year_start'
 clean_hector_csv(file_name) %>% filter(pool_name == type) %>% filter(year >= year_start) -> csv_year
