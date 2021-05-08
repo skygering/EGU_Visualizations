@@ -1,3 +1,5 @@
+# Written by: Skylar Gering April 2021
+
 library(plyr)
 library(dplyr)
 library(tidyr)
@@ -7,43 +9,40 @@ library(gganimate)
 library(magick)
 require(gridExtra)
 library(RColorBrewer)
+source("EGU_Visualizations/cleanData.R")
 
-colors3<- c("#332288", "#88CCEE", "#117733", "#999933","#DDCC77", "#44AA99", "#DDDDDD")
+natural_colors<- c("#332288", "#88CCEE", "#117733", "#999933","#DDCC77", "#44AA99", "#DDDDDD")
+
+# Animation specifics
+type = "Soil"
+RCP = "RCP 8.5"
 year_start = 1850
-type = "soil_c_global"
+anim_width = 800
+anim_height = 500
+save_path = paste("EGU_Visualizations/", type, ".gif")
 
-change_data_names<- function(data, original, new){
-  data %>% mutate(source_name = ifelse(source_name == original, new, as.character(source_name))) -> data
-}
+# File name
+file_name <- "hector/inst/output/tracking_rcp85.csv"
 
-read.csv("hector/inst/output/tracking_rcp85.csv", header=TRUE) %>% 
-  filter(pool_name == type) %>%
-  change_data_names("atmos_c", "Atmosphere") %>%
-  change_data_names("detritus_c_global", "Detritus") %>%
-  change_data_names("veg_c_global", "Vegetation") %>%
-  change_data_names("soil_c_global", "Soil") %>%
-  change_data_names("earth_c", "Fossil Fuels") %>%
-  change_data_names("ocean_c", "Ocean") %>%
-  change_data_names("untracked", "Untracked") -> csv_type
-
-csv_type %>% filter(year >= year_start) -> csv_year
+# cleans CSV and pulls out data for particular pool and years greater than 'year_start'
+clean_hector_csv(file_name) %>% filter(pool_name == type) %>% filter(year >= year_start) -> csv_year
 
 # Create data
 year  <- csv_year$year
-frames <- unique(csv_year$year - min(csv_year$year))
+num_years <- length(unique(year))
+#frames <- unique(csv_year$year - min(csv_year$year))
 source <-csv_year$source_fraction
 value <-  csv_year$pool_value
 group <-  csv_year$source_name
 combined_data <- data.frame(year, group, source, value)
-pie_data <- data.frame(year, group, source)
-line_data <- data.frame(year, value)
+#pie_data <- data.frame(year, group, source)
+#line_data <- data.frame(year, value)
 
-#data_names <- c("atmos_c", "detritus_c_global", "veg_c_global", "soil_c_global", "earth_c", "ocean_c", "untracked")
-#label_names <- c("Atmosphere", "Detritus", "Vegetation", "Soil", "Fossil Fuels", "Ocean", "Untracked")
-
-
+# Creating Pie Plot
   combined_data  %>%
+  # orders data in aesthetic order
   mutate(group = factor(group, levels=c("Atmosphere", "Detritus", "Vegetation", "Soil", "Fossil Fuels", "Ocean", "Untracked"))) %>%
+  # create pie plot using geom_bar with polar coordiantes
   ggplot(aes(x="", y=source, fill=group)) +
   geom_bar(stat="identity", width=1, color="white") +
   coord_polar("y", start=0) +
@@ -52,10 +51,10 @@ line_data <- data.frame(year, value)
         legend.title=element_text(size=25,face="bold"), 
         legend.text=element_text(size=25)) +
   transition_states(year) + 
-  labs(fill = "Origin Pools", title = 'RCP 8.5 Soil Carbon Origins\n Year: {closest_state}') +
-    scale_fill_manual(values = colors3)-> pie_plot
+  labs(fill = "Origin Pools", title = "Soil Carbon Origins\n Year: {closest_state}") +
+    scale_fill_manual(values = natural_colors)-> pie_plot
 
-
+# Creating Line Plot
   line_plot <- ggplot(combined_data, aes(x=year, y=value)) +
   geom_line() +
   geom_point() +
@@ -70,20 +69,24 @@ line_data <- data.frame(year, value)
         panel.background = element_rect(fill = "white"),
         panel.grid.minor = element_line(colour = "gray", linetype = "dotted"),
         panel.grid.major = element_line(colour = "gray")) +
-        transition_reveal(year) + scale_color_manual(values = colors3)
+        transition_reveal(year) + scale_color_manual(values = natural_colors)
 
 
+# Animating pie and line plots
+# Number of frames is 2* number of years due to pie plot needing two frames per year
+# Might be limit on duration due to limit on frames per second
+pie_gif <- animate(pie_plot, nframes = 2*num_years, duration = 20, width = anim_width, height = anim_height, renderer = gifski_renderer())
+line_gif <-animate(line_plot, nframes = 2*num_years, duration = 20, width = anim_width, height = anim_height, renderer = gifski_renderer())
 
-pie_gif <- animate(pie_plot, nframes = 900, duration = 20, width = 800, height = 500, renderer = gifski_renderer())
-line_gif <-animate(line_plot, nframes = 900, duration = 20, width = 800, height = 500, renderer = gifski_renderer())
-
+# Uses magick image gif to combine animations
+# used ideas from: https://towardsdatascience.com/how-to-combine-animated-plots-in-r-734c6c952315
 pie_mgif <- image_read(pie_gif)
 line_mgif <- image_read(line_gif)
 final_gif <- image_append(c(pie_mgif[1], line_mgif[1]), stack = TRUE)
-for(i in 2:900){
+for(i in 2:(2*num_years)){
   combined <- image_append(c(pie_mgif[i], line_mgif[i]), stack = TRUE)
   final_gif <- c(final_gif, combined)
 }
-#anim_save("atmos_with_year.gif", animation = last_animation(), path="Documents/EGU")
-#anim_save("atmos_line.gif", animation = last_animation(), path="Documents/EGU")
-image_write(final_gif, path = "Documents/EGU/soil_color.gif", format = "gif")
+
+#save final gif to 'save_path'
+image_write(final_gif, path = save_path, format = "gif")
